@@ -6,3 +6,4 @@ A simple Kanban board.
 + Maven
 + JUnit
 + Mockito
++ Dependency Injection via Spring Boot
