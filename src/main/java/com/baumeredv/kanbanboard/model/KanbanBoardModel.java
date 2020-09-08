@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class KanbanBoardModel {
 
+  @SuppressWarnings("FieldMayBeFinal")
   private KanbanBoardGateway gateway;
 
   @Autowired
@@ -13,7 +14,7 @@ public class KanbanBoardModel {
     this.gateway = gateway;
   }
 
-  public PostIt addPostIt(String text) throws IllegalAccessException {
+  public PostIt addPostIt(String text) throws IllegalArgumentException {
     if (text.equals("")) {
       throw new IllegalArgumentException("The text of a post it note must not be empty");
     }

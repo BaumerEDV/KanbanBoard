@@ -1,14 +1,15 @@
 package com.baumeredv.kanbanboard;
 
-import static org.junit.jupiter.api.Assertions.fail;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class AppTest {
 
   @Test
-  public void applicationStartsWithoutErrors(){
-    App app = new App();
+  public void applicationStartsWithoutErrors() {
+    App.main(new String[0]);
   }
 
 }

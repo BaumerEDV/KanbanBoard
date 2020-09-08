@@ -3,11 +3,9 @@ package com.baumeredv.kanbanboard;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.baumeredv.kanbanboard.model.KanbanBoardModel;
 import com.baumeredv.kanbanboard.model.PostIt;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
@@ -24,21 +22,20 @@ public class ModelTest {
   }
 
   @Test
-  public void canAddPostIt() throws IllegalAccessException {
+  public void canAddPostIt() throws IllegalArgumentException {
     PostIt addedPostIt = model.addPostIt("a test post it");
-    Iterable<PostIt> allPostIts = model.AllPostIts();
     assertTrue(isPostItInModel(addedPostIt));
   }
 
   @Test
-  public void addedPostItHasCorrectText() throws IllegalAccessException {
+  public void addedPostItHasCorrectText() throws IllegalArgumentException {
     String text = "the test Text";
     PostIt addedPostIt = model.addPostIt(text);
     assertEquals(text, addedPostIt.text());
   }
 
   @Test
-  public void canAddTwoPostIts() throws IllegalAccessException {
+  public void canAddTwoPostIts() throws IllegalArgumentException {
     String text1 = "text of the first post it";
     String text2 = "a different text";
     PostIt firstPostIt = model.addPostIt(text1);
@@ -49,14 +46,11 @@ public class ModelTest {
 
   @Test
   public void cannotAddEmptyPostIt() {
-    assertThrows(IllegalArgumentException.class, () -> {
-      model.addPostIt("");
-    });
+    assertThrows(IllegalArgumentException.class, () -> model.addPostIt(""));
   }
 
   private boolean isPostItInModel(PostIt addedPostIt) {
     Iterable<PostIt> allPostIts = model.AllPostIts();
-    ;
     boolean isAddedPostItInAllPostIts = false;
     for (PostIt postIt : allPostIts) {
       if (postIt.equals(addedPostIt)) {

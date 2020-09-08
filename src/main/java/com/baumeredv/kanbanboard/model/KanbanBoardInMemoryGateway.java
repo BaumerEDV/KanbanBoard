@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 @Component("KanbanBoardInMemoryGateway")
 class KanbanBoardInMemoryGateway implements KanbanBoardGateway{
 
-  private ArrayList<PostIt> postIts;
+  private final ArrayList<PostIt> postIts;
 
   public KanbanBoardInMemoryGateway(){
     postIts = new ArrayList<>();

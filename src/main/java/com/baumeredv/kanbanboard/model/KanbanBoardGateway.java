@@ -5,7 +5,8 @@ import org.springframework.stereotype.Component;
 @Component
 interface KanbanBoardGateway {
 
-  public PostIt addPostIt(String text);
-  public Iterable<PostIt> allPostIts();
+  PostIt addPostIt(String text);
+
+  Iterable<PostIt> allPostIts();
 
 }
