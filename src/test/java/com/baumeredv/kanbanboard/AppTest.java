@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 public class AppTest {
 
   @Test
-  public void applicationInstantiates(){
-    fail("not implemented");
+  public void applicationStartsWithoutErrors(){
+    App app = new App();
   }
 
 }
