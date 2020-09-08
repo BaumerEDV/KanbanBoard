@@ -3,7 +3,8 @@ A simple Kanban board.
 
 # Technologies
 + Java
-+ Maven
++ Dependency Injection via Spring Boot
++ Reflection
 + JUnit
 + Mockito
-+ Dependency Injection via Spring Boot
++ Maven
