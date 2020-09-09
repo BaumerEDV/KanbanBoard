@@ -9,7 +9,9 @@ import com.baumeredv.kanbanboard.model.KanbanBoardModel;
 import com.baumeredv.kanbanboard.model.PostIt;
 import com.baumeredv.kanbanboard.model.PostItStage;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoPreviousStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
+import com.sun.source.tree.AssertTree;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
@@ -166,10 +168,76 @@ public class ModelTest {
       }
     }
 
+    @Nested
+    class MovingPostItsBackward {
+
+      private PostIt postIt;
+      private PostIt movedPostIt;
+
+      @BeforeEach
+      public void setupADonePostIt() {
+        postIt = model.addPostIt(POST_IT_TEXT);
+        for (int i = 0; i < 3; i++) {
+          postIt = model.movePostItToNext(postIt);
+        }
+        assertEquals(PostItStage.DONE, postIt.stage());
+      }
+
+      @Test
+      public void movingBackOnceMeansTEST() {
+        temporaryPostIts.add(postIt);
+        movedPostIt = model.movePostItToPrevious(postIt);
+        assertEquals(PostItStage.TEST, movedPostIt.stage());
+      }
+
+      @Test
+      public void movingBackTwiceMeansWIP() {
+        movedPostIt = postIt;
+        for (int i = 0; i < 2; i++) {
+          temporaryPostIts.add(movedPostIt);
+          movedPostIt = model.movePostItToPrevious(movedPostIt);
+        }
+        assertEquals(PostItStage.WIP, movedPostIt.stage());
+      }
+
+      @Test
+      public void movingBackThreeTimesMeansBACKLOG() {
+        movedPostIt = postIt;
+        for (int i = 0; i < 3; i++) {
+          temporaryPostIts.add(movedPostIt);
+          movedPostIt = model.movePostItToPrevious(movedPostIt);
+        }
+        assertEquals(PostItStage.BACKLOG, movedPostIt.stage());
+      }
+
+      @Test
+      public void movingBackFourTimesThrows() {
+        movedPostIt = postIt;
+        for (int i = 0; i < 3; i++) {
+          temporaryPostIts.add(movedPostIt);
+          movedPostIt = model.movePostItToPrevious(movedPostIt);
+        }
+        assertThrows(ThereIsNoPreviousStageException.class,
+            () -> model.movePostItToPrevious(movedPostIt));
+      }
+
+      @AfterEach
+      public void movedPostItIsInModel(){
+        assertTrue(isPostItInModel(movedPostIt));
+      }
+
+    }
+
     @Test
-    public void movingNonexistentPostItThrows() throws Exception {
+    public void movingNonexistentPostItForwardThrows() throws Exception {
       PostIt postIt = createPostItInstance(POST_IT_TEXT);
       assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToNext(postIt));
+    }
+
+    @Test
+    public void movingNonexistentPostItBackwardsThrows() throws Exception {
+      PostIt postIt = createPostItInstance(POST_IT_TEXT);
+      assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToPrevious(postIt));
     }
 
     @AfterEach

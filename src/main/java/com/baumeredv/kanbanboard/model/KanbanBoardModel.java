@@ -41,4 +41,8 @@ public class KanbanBoardModel {
   public PostIt movePostItToNext(PostIt postIt) throws ThereIsNoNextStageException {
     return gateway.movePostItToNext(postIt);
   }
+
+  public PostIt movePostItToPrevious(PostIt postIt) {
+    return gateway.movePostItToPrevious(postIt);
+  }
 }
