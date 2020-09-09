@@ -1,5 +1,6 @@
 package com.baumeredv.kanbanboard.model;
 
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -10,4 +11,6 @@ interface KanbanBoardGateway {
   Iterable<PostIt> allPostIts();
 
   void deletePostIt(PostIt postIt);
+
+  PostIt movePostItToNext(PostIt postIt) throws ThereIsNoNextStageException;
 }

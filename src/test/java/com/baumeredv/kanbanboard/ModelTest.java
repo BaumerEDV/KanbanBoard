@@ -8,12 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.baumeredv.kanbanboard.model.KanbanBoardModel;
 import com.baumeredv.kanbanboard.model.PostIt;
 import com.baumeredv.kanbanboard.model.PostItStage;
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -59,12 +62,12 @@ public class ModelTest {
     }
 
     @Test
-    public void cannotAddNullPostIt(){
+    public void cannotAddNullPostIt() {
       assertThrows(NullPointerException.class, () -> model.addPostIt(null));
     }
 
     @Test
-    public void newPostItsAreInTheBacklog(){
+    public void newPostItsAreInTheBacklog() {
       PostIt postIt = model.addPostIt("some text");
       assertEquals(PostItStage.BACKLOG, postIt.stage());
     }
@@ -86,7 +89,6 @@ public class ModelTest {
     public void deletingANonexistentPostItThrowsException() throws Exception {
       PostIt postIt = createPostItInstance(postItText);
       assertThrows(NoSuchElementException.class, () -> model.deletePostIt(postIt));
-
     }
 
     @Test
@@ -97,37 +99,118 @@ public class ModelTest {
 
   }
 
+  @Nested
+  class MovingPostIts {
+
+    private final String POST_IT_TEXT = "some text";
+    private ArrayList<PostIt> temporaryPostIts;
+
+    @BeforeEach
+    public void setup() {
+      temporaryPostIts = new ArrayList<>();
+    }
+
+    @Nested
+    class MovingPostItsForward {
+
+      private PostIt postIt;
+      private PostIt movedPostIt;
+
+      @BeforeEach
+      public void setup() throws Exception {
+        postIt = model.addPostIt(POST_IT_TEXT);
+      }
+
+      @Test
+      public void movingOnceMeansWIP() {
+        movedPostIt = model.movePostItToNext(postIt);
+        temporaryPostIts.add(postIt);
+        assertEquals(PostItStage.WIP, movedPostIt.stage());
+      }
+
+      @Test
+      public void movingTwiceMeansTEST() {
+        movedPostIt = postIt;
+        for (int i = 0; i < 2; i++) {
+          temporaryPostIts.add(movedPostIt);
+          movedPostIt = model.movePostItToNext(movedPostIt);
+        }
+        assertEquals(PostItStage.TEST, movedPostIt.stage());
+      }
+
+      @Test
+      public void movingThreeTimesMeansDONE() {
+        movedPostIt = postIt;
+        for (int i = 0; i < 3; i++) {
+          temporaryPostIts.add(movedPostIt);
+          movedPostIt = model.movePostItToNext(movedPostIt);
+        }
+        assertEquals(PostItStage.DONE, movedPostIt.stage());
+      }
+
+      @Test
+      public void movingFourTimesThrowsError() {
+        movedPostIt = postIt;
+        for (int i = 0; i < 3; i++) {
+          temporaryPostIts.add(movedPostIt);
+          movedPostIt = model.movePostItToNext(movedPostIt);
+        }
+        assertThrows(ThereIsNoNextStageException.class, () -> model.movePostItToNext(movedPostIt));
+      }
+
+      @AfterEach
+      public void movedPostItIsInModel() {
+        if (movedPostIt != null) {
+          assertTrue(isPostItInModel(movedPostIt));
+        }
+      }
+    }
+
+    @Test
+    public void movingNonexistentPostItThrows() throws Exception {
+      PostIt postIt = createPostItInstance(POST_IT_TEXT);
+      assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToNext(postIt));
+    }
+
+    @AfterEach
+    public void oldPostItsAreNotInModel() {
+      for (PostIt postIt : temporaryPostIts) {
+        assertFalse(isPostItInModel(postIt));
+      }
+    }
+
+  }
 
   @Nested
-  class PostItEquals{
+  class PostItEquals {
 
     String postItText = "some text";
     PostIt postIt;
 
     @BeforeEach
-    public void createPostIt() throws Exception{
+    public void createPostIt() throws Exception {
       postIt = createPostItInstance(postItText);
     }
 
     @Test
-    public void postItDoesNotEqualSomethingThatIsNotPostIt(){
+    public void postItDoesNotEqualSomethingThatIsNotPostIt() {
       assertFalse(postIt.equals(1));
       assertFalse(postIt.equals("something"));
       assertFalse(postIt.equals(postItText));
     }
 
     @Test
-    public void postItDoesNotEqualNull(){
+    public void postItDoesNotEqualNull() {
       assertFalse(postIt.equals(null));
     }
 
     @Test
-    public void postItEqualsItself(){
+    public void postItEqualsItself() {
       assertTrue(postIt.equals(postIt));
     }
 
     @Test
-    public void postItDoesNotEqualADifferentPostIt() throws Exception{
+    public void postItDoesNotEqualADifferentPostIt() throws Exception {
       PostIt otherPostIt = createPostItInstance(postItText + "2");
       assertFalse(postIt.equals(otherPostIt));
     }
@@ -135,27 +218,27 @@ public class ModelTest {
   }
 
 
+  private PostIt createPostItInstance(String text) throws Exception {
+    return createPostItInstance(text, PostItStage.BACKLOG);
+  }
 
-
-
-
-  private PostIt createPostItInstance(String text) throws Exception{
+  private PostIt createPostItInstance(String text, PostItStage stage) throws Exception {
     Constructor<PostIt> constructor = PostIt.class.getDeclaredConstructor(
         String.class,
         PostItStage.class);
     constructor.setAccessible(true);
-    return constructor.newInstance(text, PostItStage.BACKLOG);
+    return constructor.newInstance(text, stage);
     /*REVIEW: should this use reflection or should this use mocking?
       or should this add a post it to get it? (the latter seems wrong because then the test
       incorrectly fails when adding is broken)
        */
   }
 
-  private boolean isPostItInModel(PostIt addedPostIt) {
+  private boolean isPostItInModel(PostIt postItInQuestion) {
     Iterable<PostIt> allPostIts = model.AllPostIts();
     boolean isPostItInAllPostIts = false;
     for (PostIt postIt : allPostIts) {
-      if (postIt.equals(addedPostIt)) {
+      if (postIt.equals(postItInQuestion)) {
         isPostItInAllPostIts = true;
         break;
       }

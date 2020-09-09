@@ -1,5 +1,6 @@
 package com.baumeredv.kanbanboard.model;
 
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,5 +36,9 @@ public class KanbanBoardModel {
       throw new NullPointerException("A post it was to be deleted but null was given");
     }
     gateway.deletePostIt(postIt);
+  }
+
+  public PostIt movePostItToNext(PostIt postIt) throws ThereIsNoNextStageException {
+    return gateway.movePostItToNext(postIt);
   }
 }
