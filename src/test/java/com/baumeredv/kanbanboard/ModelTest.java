@@ -11,7 +11,6 @@ import com.baumeredv.kanbanboard.model.PostItStage;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoPreviousStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
-import com.sun.source.tree.AssertTree;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
@@ -222,7 +221,7 @@ public class ModelTest {
       }
 
       @AfterEach
-      public void movedPostItIsInModel(){
+      public void movedPostItIsInModel() {
         assertTrue(isPostItInModel(movedPostIt));
       }
 
@@ -230,14 +229,26 @@ public class ModelTest {
 
     @Test
     public void movingNonexistentPostItForwardThrows() throws Exception {
-      PostIt postIt = createPostItInstance(POST_IT_TEXT);
-      assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToNext(postIt));
+      PostItStage currentStage = PostItStage.BACKLOG;
+      for (int i = 0; i < 3; i++) {
+        final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
+        assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToNext(postIt));
+        currentStage = currentStage.nextStage();
+      }
+      final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
+      assertThrows(ThereIsNoNextStageException.class, () -> model.movePostItToNext(postIt));
     }
 
     @Test
     public void movingNonexistentPostItBackwardsThrows() throws Exception {
-      PostIt postIt = createPostItInstance(POST_IT_TEXT);
-      assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToPrevious(postIt));
+      PostItStage currentStage = PostItStage.DONE;
+      for (int i = 0; i < 3; i++){
+        final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
+        assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToPrevious(postIt));
+        currentStage = currentStage.previousStage();
+      }
+      final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
+      assertThrows(ThereIsNoPreviousStageException.class, () -> model.movePostItToPrevious(postIt));
     }
 
     @AfterEach

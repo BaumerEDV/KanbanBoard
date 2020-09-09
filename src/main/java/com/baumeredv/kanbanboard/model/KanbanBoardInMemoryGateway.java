@@ -1,10 +1,8 @@
 package com.baumeredv.kanbanboard.model;
 
-import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
-import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoPreviousStageException;
+
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
 import org.springframework.stereotype.Component;
 
 @Component("KanbanBoardInMemoryGateway")
@@ -37,26 +35,12 @@ class KanbanBoardInMemoryGateway implements KanbanBoardGateway {
   }
 
   @Override
-  public PostIt movePostItToNext(PostIt postIt)
-      throws ThereIsNoNextStageException, ThereIsNoSuchPostItException {
-    //REVIEW: another instance of why opening curly brackets belong in a new line ;)
-    PostIt newPostIt = new PostIt(postIt.text(), postIt.stage().nextStage());
-    boolean postItWasRemoved = postIts.remove(postIt);
-    if (!postItWasRemoved) {
-      throw new ThereIsNoSuchPostItException("Tried to remove post it, but there was none");
-    }
-    postIts.add(newPostIt);
-    return newPostIt;
-  }
-
-  //TODO: refactor duplicate code in to next and to previous; move validation to model
-  @Override
-  public PostIt movePostItToPrevious(PostIt postIt)
-      throws ThereIsNoPreviousStageException, ThereIsNoSuchPostItException {
+  public PostIt changePostItStage(PostIt postIt, PostItStage newStage)
+      throws ThereIsNoSuchPostItException {
     if (!postIts.contains(postIt)) {
       throw new ThereIsNoSuchPostItException("Tried to remove post it, but there was none");
     }
-    PostIt newPostIt = new PostIt(postIt.text(), postIt.stage().previousStage());
+    PostIt newPostIt = new PostIt(postIt.text(), newStage);
     postIts.remove(postIt);
     postIts.add(newPostIt);
     return newPostIt;

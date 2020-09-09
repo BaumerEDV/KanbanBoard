@@ -1,6 +1,8 @@
 package com.baumeredv.kanbanboard.model;
 
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoPreviousStageException;
+import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,11 +40,15 @@ public class KanbanBoardModel {
     gateway.deletePostIt(postIt);
   }
 
-  public PostIt movePostItToNext(PostIt postIt) throws ThereIsNoNextStageException {
-    return gateway.movePostItToNext(postIt);
+  public PostIt movePostItToNext(PostIt postIt)
+      throws ThereIsNoSuchPostItException, ThereIsNoNextStageException {
+    PostItStage newStage = postIt.stage().nextStage();
+    return gateway.changePostItStage(postIt, newStage);
   }
 
-  public PostIt movePostItToPrevious(PostIt postIt) {
-    return gateway.movePostItToPrevious(postIt);
+  public PostIt movePostItToPrevious(PostIt postIt)
+      throws ThereIsNoSuchPostItException, ThereIsNoPreviousStageException {
+    PostItStage newStage = postIt.stage().previousStage();
+    return gateway.changePostItStage(postIt, newStage);
   }
 }

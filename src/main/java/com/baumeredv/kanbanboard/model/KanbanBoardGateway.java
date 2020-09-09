@@ -14,9 +14,5 @@ interface KanbanBoardGateway {
 
   void deletePostIt(PostIt postIt);
 
-  PostIt movePostItToNext(PostIt postIt)
-      throws ThereIsNoNextStageException, ThereIsNoSuchPostItException;
-
-  PostIt movePostItToPrevious(PostIt postIt)
-      throws ThereIsNoPreviousStageException, ThereIsNoSuchPostItException;
+  PostIt changePostItStage(PostIt postIt, PostItStage newStage) throws ThereIsNoSuchPostItException;
 }
