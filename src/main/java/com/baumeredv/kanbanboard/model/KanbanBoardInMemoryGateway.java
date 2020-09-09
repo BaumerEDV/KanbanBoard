@@ -57,6 +57,7 @@ class KanbanBoardInMemoryGateway implements KanbanBoardGateway {
       throw new ThereIsNoSuchPostItException("Tried to remove post it, but there was none");
     }
     PostIt newPostIt = new PostIt(postIt.text(), postIt.stage().previousStage());
+    postIts.remove(postIt);
     postIts.add(newPostIt);
     return newPostIt;
   }
