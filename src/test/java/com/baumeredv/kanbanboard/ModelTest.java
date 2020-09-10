@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
+//REVIEW: These imports show that wild card imports *should* be used.
+
 public class ModelTest {
 
   private KanbanBoardModel model;
@@ -242,7 +244,7 @@ public class ModelTest {
     @Test
     public void movingNonexistentPostItBackwardsThrows() throws Exception {
       PostItStage currentStage = PostItStage.DONE;
-      for (int i = 0; i < 3; i++){
+      for (int i = 0; i < 3; i++) {
         final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
         assertThrows(ThereIsNoSuchPostItException.class, () -> model.movePostItToPrevious(postIt));
         currentStage = currentStage.previousStage();
@@ -256,6 +258,45 @@ public class ModelTest {
       for (PostIt postIt : temporaryPostIts) {
         assertFalse(isPostItInModel(postIt));
       }
+    }
+
+  }
+
+  @Nested
+  class ChangingPostItText {
+
+    private PostIt postIt;
+    private final String OLD_TEXT = "old text";
+    private final String NEW_TEXT = "new text";
+
+    @BeforeEach
+    public void setup() {
+      postIt = model.addPostIt(OLD_TEXT);
+    }
+
+    @Test
+    public void changingTextChangesText() {
+      PostIt newPostIt = model.changePostItText(postIt, NEW_TEXT);
+      assertEquals(NEW_TEXT, newPostIt.text());
+    }
+
+    @Test
+    public void changingTextSavesChangedPostIt() {
+      PostIt newPostIt = model.changePostItText(postIt, NEW_TEXT);
+      assertTrue(isPostItInModel(newPostIt));
+    }
+
+    @Test
+    public void changingTextRemovesOriginalPostIt() {
+      model.changePostItText(postIt, NEW_TEXT);
+      assertFalse(isPostItInModel(postIt));
+    }
+
+    @Test
+    public void changingTextOfANonexistentPostItThrows() throws Exception {
+      PostIt nonexistentPostIt = createPostItInstance(NEW_TEXT);
+      assertThrows(ThereIsNoSuchPostItException.class,
+          () -> model.changePostItText(nonexistentPostIt, NEW_TEXT + "2"));
     }
 
   }

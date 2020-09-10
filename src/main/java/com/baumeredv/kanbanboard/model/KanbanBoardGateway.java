@@ -15,4 +15,6 @@ interface KanbanBoardGateway {
   void deletePostIt(PostIt postIt);
 
   PostIt changePostItStage(PostIt postIt, PostItStage newStage) throws ThereIsNoSuchPostItException;
+
+  PostIt changePostItText(PostIt postIt, String newText) throws ThereIsNoSuchPostItException;
 }

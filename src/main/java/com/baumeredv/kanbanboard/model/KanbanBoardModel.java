@@ -20,7 +20,7 @@ public class KanbanBoardModel {
   }
 
   public PostIt addPostIt(String text) throws IllegalArgumentException {
-    if (text == null){
+    if (text == null) {
       throw new NullPointerException("Post it was to be created, but null was given as text");
     }
     if (text.equals("")) {
@@ -50,5 +50,10 @@ public class KanbanBoardModel {
       throws ThereIsNoSuchPostItException, ThereIsNoPreviousStageException {
     PostItStage newStage = postIt.stage().previousStage();
     return gateway.changePostItStage(postIt, newStage);
+  }
+
+  public PostIt changePostItText(PostIt postIt, String newText)
+      throws ThereIsNoSuchPostItException {
+    return gateway.changePostItText(postIt, newText);
   }
 }

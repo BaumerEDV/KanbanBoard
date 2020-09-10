@@ -45,4 +45,16 @@ class KanbanBoardInMemoryGateway implements KanbanBoardGateway {
     postIts.add(newPostIt);
     return newPostIt;
   }
+
+  @Override
+  public PostIt changePostItText(PostIt postIt, String newText)
+      throws ThereIsNoSuchPostItException {
+    if(!postIts.contains(postIt)){
+      throw new ThereIsNoSuchPostItException("Tried to change post it, but there was none");
+    }
+    PostIt newPostIt = new PostIt(newText, postIt.stage());
+    postIts.remove(postIt);
+    postIts.add(newPostIt);
+    return newPostIt;
+  }
 }
