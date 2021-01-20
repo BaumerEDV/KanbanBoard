@@ -288,33 +288,37 @@ public class ModelTest {
   }
 
   @Nested
-  class ChangingPostItText {
+  class WhenChangingPostItText {
 
-    private PostIt postIt;
-    private final String OLD_TEXT = "old text";
     private final String NEW_TEXT = "new text";
 
-    @BeforeEach
-    public void setup() {
-      postIt = model.addPostIt(OLD_TEXT);
-    }
+    @Nested
+    class OfAnExistingPostIt {
 
-    @Test
-    public void changingTextChangesText() {
-      PostIt newPostIt = model.changePostItText(postIt, NEW_TEXT);
-      assertEquals(NEW_TEXT, newPostIt.text());
-    }
+      private PostIt oldPostIt;
+      private PostIt newPostIt;
+      private final String OLD_TEXT = "old text";
 
-    @Test
-    public void changingTextSavesChangedPostIt() {
-      PostIt newPostIt = model.changePostItText(postIt, NEW_TEXT);
-      assertTrue(isPostItInModel(newPostIt));
-    }
+      @BeforeEach
+      public void setup() {
+        oldPostIt = model.addPostIt(OLD_TEXT);
+        newPostIt = model.changePostItText(oldPostIt, NEW_TEXT);
+      }
 
-    @Test
-    public void changingTextRemovesOriginalPostIt() {
-      model.changePostItText(postIt, NEW_TEXT);
-      assertFalse(isPostItInModel(postIt));
+      @Test
+      public void theNewTextIsSavedInThePostIt() {
+        assertEquals(NEW_TEXT, newPostIt.text());
+      }
+
+      @Test
+      public void theChangedPostItIsInTheModel() {
+        assertTrue(isPostItInModel(newPostIt));
+      }
+
+      @Test
+      public void theOriginalPostItIsNotInTheModel() {
+        assertFalse(isPostItInModel(oldPostIt));
+      }
     }
 
     @Test
@@ -322,6 +326,7 @@ public class ModelTest {
       PostIt nonexistentPostIt = createPostItInstance(NEW_TEXT);
       assertThrows(ThereIsNoSuchPostItException.class,
           () -> model.changePostItText(nonexistentPostIt, NEW_TEXT + "2"));
+    //REVIEW: should this have its own nested class for a single test case?
     }
 
   }
