@@ -27,6 +27,8 @@ public class ModelTest {
 
   private KanbanBoardModel model;
 
+  //TODO: refactor names and nesting structure
+
   @BeforeEach
   public void createModel() {
     ApplicationContext context = new AnnotationConfigApplicationContext(App.class);
@@ -36,43 +38,55 @@ public class ModelTest {
   @Nested
   class AddingPostIts {
 
-    @Test
-    public void canAddPostIt() throws IllegalArgumentException {
-      PostIt addedPostIt = model.addPostIt("a test post it");
-      assertTrue(isPostItInModel(addedPostIt));
+    @Nested
+    class AnAddedPostIt {
+
+      private final String ADDED_POST_IT_TEXT = "a test post it";
+      private PostIt addedPostIt;
+
+      @BeforeEach
+      public void setup() {
+        addedPostIt = model.addPostIt(ADDED_POST_IT_TEXT);
+      }
+
+      @Test
+      public void isAddedToTheModel() {
+        assertTrue(isPostItInModel(addedPostIt));
+      }
+
+      @Test
+      public void hasTheTextItWasGiven() {
+        assertEquals(ADDED_POST_IT_TEXT, addedPostIt.text());
+      }
+
+      @Test
+      public void isInTheBacklogStage() {
+        assertEquals(PostItStage.BACKLOG, addedPostIt.stage());
+      }
+
+      @Test
+      public void canBeAddedAlongsideASecondOne() {
+        final String SECOND_POST_IT_TEXT = "second post it text";
+        PostIt secondPostIt = model.addPostIt(SECOND_POST_IT_TEXT);
+
+        assertTrue(isPostItInModel(addedPostIt));
+        assertTrue(isPostItInModel(secondPostIt));
+      }
+
     }
 
-    @Test
-    public void addedPostItHasCorrectText() throws IllegalArgumentException {
-      String text = "the test Text";
-      PostIt addedPostIt = model.addPostIt(text);
-      assertEquals(text, addedPostIt.text());
-    }
+    @Nested
+    class APostItCannotBeAdded {
 
-    @Test
-    public void canAddTwoPostIts() throws IllegalArgumentException {
-      String text1 = "text of the first post it";
-      String text2 = "a different text";
-      PostIt firstPostIt = model.addPostIt(text1);
-      PostIt secondPostIt = model.addPostIt(text2);
-      assertTrue(isPostItInModel(firstPostIt));
-      assertTrue(isPostItInModel(secondPostIt));
-    }
+      @Test
+      public void ifItIsEmpty() {
+        assertThrows(IllegalArgumentException.class, () -> model.addPostIt(""));
+      }
 
-    @Test
-    public void cannotAddEmptyPostIt() {
-      assertThrows(IllegalArgumentException.class, () -> model.addPostIt(""));
-    }
-
-    @Test
-    public void cannotAddNullPostIt() {
-      assertThrows(NullPointerException.class, () -> model.addPostIt(null));
-    }
-
-    @Test
-    public void newPostItsAreInTheBacklog() {
-      PostIt postIt = model.addPostIt("some text");
-      assertEquals(PostItStage.BACKLOG, postIt.stage());
+      @Test
+      public void ifItIsNull() {
+        assertThrows(NullPointerException.class, () -> model.addPostIt(null));
+      }
     }
   }
 
