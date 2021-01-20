@@ -27,8 +27,6 @@ public class ModelTest {
 
   private KanbanBoardModel model;
 
-  //TODO: refactor names and nesting structure
-
   @BeforeEach
   public void createModel() {
     ApplicationContext context = new AnnotationConfigApplicationContext(App.class);
@@ -326,7 +324,7 @@ public class ModelTest {
       PostIt nonexistentPostIt = createPostItInstance(NEW_TEXT);
       assertThrows(ThereIsNoSuchPostItException.class,
           () -> model.changePostItText(nonexistentPostIt, NEW_TEXT + "2"));
-    //REVIEW: should this have its own nested class for a single test case?
+      //REVIEW: should this have its own nested class for a single test case?
     }
 
   }
