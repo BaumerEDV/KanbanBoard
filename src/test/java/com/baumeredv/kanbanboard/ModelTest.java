@@ -343,7 +343,7 @@ public class ModelTest {
     }
 
     @Test
-    public void postItDoesNotEqualSomethingThatIsNotPostIt() {
+    public void postItDoesNotEqualSomethingThatIsNotAPostIt() {
       assertFalse(postIt.equals(1));
       assertFalse(postIt.equals("something"));
       assertFalse(postIt.equals(postItText));
