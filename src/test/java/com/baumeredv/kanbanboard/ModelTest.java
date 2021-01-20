@@ -127,7 +127,7 @@ public class ModelTest {
   }
 
   @Nested
-  class MovingPostIts {
+  class WhenMovingPostIts {
 
     private final String POST_IT_TEXT = "some text";
     private ArrayList<PostIt> temporaryPostIts;
@@ -138,7 +138,7 @@ public class ModelTest {
     }
 
     @Nested
-    class MovingPostItsForward {
+    class MovingNewPostItsForward {
 
       private PostIt postIt;
       private PostIt movedPostIt;
@@ -149,14 +149,14 @@ public class ModelTest {
       }
 
       @Test
-      public void movingOnceMeansWIP() {
+      public void onceMovesToWIP() {
         movedPostIt = model.movePostItToNext(postIt);
         temporaryPostIts.add(postIt);
         assertEquals(PostItStage.WIP, movedPostIt.stage());
       }
 
       @Test
-      public void movingTwiceMeansTEST() {
+      public void twiceMovesToTEST() {
         movedPostIt = postIt;
         for (int i = 0; i < 2; i++) {
           temporaryPostIts.add(movedPostIt);
@@ -166,7 +166,7 @@ public class ModelTest {
       }
 
       @Test
-      public void movingThreeTimesMeansDONE() {
+      public void threeTimesMovesToDONE() {
         movedPostIt = postIt;
         for (int i = 0; i < 3; i++) {
           temporaryPostIts.add(movedPostIt);
@@ -176,7 +176,7 @@ public class ModelTest {
       }
 
       @Test
-      public void movingFourTimesThrowsError() {
+      public void fourTimesThrowsException() {
         movedPostIt = postIt;
         for (int i = 0; i < 3; i++) {
           temporaryPostIts.add(movedPostIt);
@@ -194,7 +194,7 @@ public class ModelTest {
     }
 
     @Nested
-    class MovingPostItsBackward {
+    class MovingDonePostItsBackward {
 
       private PostIt postIt;
       private PostIt movedPostIt;
@@ -206,6 +206,7 @@ public class ModelTest {
           postIt = model.movePostItToNext(postIt);
         }
         assertEquals(PostItStage.DONE, postIt.stage());
+        //REVIEW: should I create such a post it via reflection instead of using methods?
       }
 
       @Test
@@ -254,7 +255,7 @@ public class ModelTest {
     }
 
     @Test
-    public void movingNonexistentPostItForwardThrows() throws Exception {
+    public void movingNonexistentPostItForwardThrowsForAllStages() throws Exception {
       PostItStage currentStage = PostItStage.BACKLOG;
       for (int i = 0; i < 3; i++) {
         final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
@@ -266,7 +267,7 @@ public class ModelTest {
     }
 
     @Test
-    public void movingNonexistentPostItBackwardsThrows() throws Exception {
+    public void movingNonexistentPostItBackwardsThrowsForAllStages() throws Exception {
       PostItStage currentStage = PostItStage.DONE;
       for (int i = 0; i < 3; i++) {
         final PostIt postIt = createPostItInstance(POST_IT_TEXT, currentStage);
