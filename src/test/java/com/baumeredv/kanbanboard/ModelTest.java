@@ -36,7 +36,7 @@ public class ModelTest {
   }
 
   @Nested
-  class AddingPostIts {
+  class WhenAddingPostIts {
 
     @Nested
     class AnAddedPostIt {
@@ -91,20 +91,30 @@ public class ModelTest {
   }
 
   @Nested
-  class DeletingPostIts {
+  class WhenDeletingPostIts {
 
-    String postItText = "text of the post it to be deleted";
+    private final String POST_IT_TO_BE_DELETED_TEXT = "text of the post it to be deleted";
 
-    @Test
-    public void aDeletedPostItIsRemoved() {
-      PostIt postIt = model.addPostIt(postItText);
-      model.deletePostIt(postIt);
-      assertFalse(isPostItInModel(postIt));
+    @Nested
+    class AfterAPostItWasAdded {
+
+      private PostIt postIt;
+
+      @BeforeEach
+      public void setup() {
+        postIt = model.addPostIt(POST_IT_TO_BE_DELETED_TEXT);
+      }
+
+      @Test
+      public void deletingThePostItRemovesItFromTheModel() {
+        model.deletePostIt(postIt);
+        assertFalse(isPostItInModel(postIt));
+      }
     }
 
     @Test
     public void deletingANonexistentPostItThrowsException() throws Exception {
-      PostIt postIt = createPostItInstance(postItText);
+      PostIt postIt = createPostItInstance(POST_IT_TO_BE_DELETED_TEXT);
       assertThrows(NoSuchElementException.class, () -> model.deletePostIt(postIt));
     }
 
