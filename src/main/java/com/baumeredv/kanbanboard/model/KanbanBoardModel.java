@@ -17,7 +17,7 @@ public class KanbanBoardModel {
 
   @Autowired
   public KanbanBoardModel(
-      @Qualifier("KanbanBoardInMemoryGateway") KanbanBoardGateway gateway) {
+      @Qualifier("KanbanBoardDatabaseGateway") KanbanBoardGateway gateway) {
     this.gateway = gateway;
   }
   //REVIEW: here the autowiring a private property is a lot cleaner than wiring a constructor

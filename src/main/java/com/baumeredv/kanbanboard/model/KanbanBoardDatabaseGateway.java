@@ -1,10 +1,17 @@
 package com.baumeredv.kanbanboard.model;
 
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
+import org.hibernate.SessionFactory;
 import org.springframework.stereotype.Component;
 
 @Component("KanbanBoardDatabaseGateway")
 public class KanbanBoardDatabaseGateway implements KanbanBoardGateway{
+
+  private final SessionFactory sessionFactory;
+
+  public KanbanBoardDatabaseGateway(){
+    sessionFactory = com.baumeredv.kanbanboard.model.util.SessionFactory.sessionFactory();
+  }
 
   @Override
   public PostIt addPostIt(String text, PostItStage stage) {
