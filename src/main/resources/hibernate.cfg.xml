@@ -10,13 +10,13 @@
     </property>
 
     <property name = "hibernate.connection.driver_class">
-      com.mysql.jdbc.Driver
+      org.h2.Driver
     </property>
 
     <!-- Assume test is the database name -->
 
     <property name = "hibernate.connection.url">
-      jdbc:h2:/data/h2database
+      jdbc:h2:./data/h2database
     </property>
 
     <property name = "hibernate.connection.username">
@@ -33,7 +33,7 @@
     <property name="hbm2ddl.auto">create</property>
 
     <!-- Names the annotated entity class -->
-    <mapping class=""/>
+    <mapping class="com.baumeredv.kanbanboard.model.dto.PostIt"/>
 
 
     <!-- List of XML mapping files -->

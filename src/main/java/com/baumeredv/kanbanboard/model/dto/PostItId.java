@@ -1,9 +1,10 @@
 package com.baumeredv.kanbanboard.model.dto;
 
+import java.io.Serializable;
 import javax.persistence.Embeddable;
 
 @Embeddable
-public class PostItId {
+public class PostItId implements Serializable {
 
   private String text;
   private String stage; //https://stackoverflow.com/questions/229856/ways-to-save-enums-in-database
