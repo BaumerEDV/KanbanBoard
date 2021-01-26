@@ -3,6 +3,7 @@ package com.baumeredv.kanbanboard.model;
 
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
 import java.util.ArrayList;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Component("KanbanBoardInMemoryGateway")

@@ -4,6 +4,7 @@ import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoPreviousStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,9 +16,12 @@ public class KanbanBoardModel {
   private KanbanBoardGateway gateway;
 
   @Autowired
-  public KanbanBoardModel(KanbanBoardGateway gateway) {
+  public KanbanBoardModel(
+      @Qualifier("KanbanBoardInMemoryGateway") KanbanBoardGateway gateway) {
     this.gateway = gateway;
   }
+  //REVIEW: here the autowiring a private property is a lot cleaner than wiring a constructor
+  //REVIEW: oh, and another instance that shows opening curly brackets belong in a new line
 
   public PostIt addPostIt(String text) throws IllegalArgumentException {
     if (text == null) {

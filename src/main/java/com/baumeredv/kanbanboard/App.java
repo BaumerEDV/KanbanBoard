@@ -24,5 +24,8 @@ public class App {
   public App(KanbanBoardModel model) {
     this.model = model;
   }
+  /*REVIEW: discuss Autowired constructor with boiler plate code vs no-parameter constructor and
+  autowiring private properties
+   */
 
 }
