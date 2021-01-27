@@ -9,6 +9,10 @@ public class PostItId implements Serializable {
   private String text;
   private String stage; //https://stackoverflow.com/questions/229856/ways-to-save-enums-in-database
 
+  public PostItId(){
+    super();
+  }
+
   public PostItId(String text, String stage) {
     this.text = text;
     this.stage = stage;

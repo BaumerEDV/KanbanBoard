@@ -33,6 +33,8 @@ public class ModelTest {
     this.model = context.getBean(KanbanBoardModel.class);
   }
 
+  //TODO: set up that persistence elements are emptied after every test
+
   @Nested
   class WhenAddingPostIts {
 

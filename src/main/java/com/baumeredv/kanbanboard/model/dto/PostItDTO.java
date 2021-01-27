@@ -4,12 +4,16 @@ import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 
 @Entity
-public class PostIt {
+public class PostItDTO {
 
   @EmbeddedId
   private PostItId postItId;
 
-  public PostIt(PostItId postItId) {
+  public PostItDTO() {
+    super();
+  }
+
+  public PostItDTO(PostItId postItId) {
     this.postItId = postItId;
   }
 
