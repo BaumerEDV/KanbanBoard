@@ -15,17 +15,19 @@ public class SessionFactory {
   }
 
   public static org.hibernate.SessionFactory sessionFactory() {
-    if (sessionFactory == null){
+    //if (sessionFactory == null){
       Configuration configuration = new Configuration();
       configuration.configure("/hibernate.cfg.xml");
       configuration.addAnnotatedClass(PostItDTO.class);
-      assert(serviceRegistry == null);
+      //assert(serviceRegistry == null);
       serviceRegistry = new StandardServiceRegistryBuilder()
           .applySettings(configuration.getProperties())
           .build();
       sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-    }
+    //}
     return sessionFactory;
   }
+
+  //TODO: make this a proper Spring item so that it gets recreated from the testing framework
 
 }

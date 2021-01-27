@@ -11,20 +11,27 @@ import com.baumeredv.kanbanboard.model.PostItStage;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoNextStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoPreviousStageException;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
+import com.baumeredv.kanbanboard.model.util.SessionFactory;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import org.hibernate.Session;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.transaction.annotation.Transactional;
 
 //REVIEW: These imports show that wild card imports *should* be used.
-
+@Transactional
+@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 public class ModelTest {
 
+  private static final boolean USING_HIBERNATE = true;
   private KanbanBoardModel model;
 
   @BeforeEach
@@ -32,8 +39,6 @@ public class ModelTest {
     ApplicationContext context = new AnnotationConfigApplicationContext(App.class);
     this.model = context.getBean(KanbanBoardModel.class);
   }
-
-  //TODO: set up that persistence elements are emptied after every test
 
   @Nested
   class WhenAddingPostIts {
