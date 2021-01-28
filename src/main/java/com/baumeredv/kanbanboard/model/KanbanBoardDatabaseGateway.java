@@ -2,6 +2,7 @@ package com.baumeredv.kanbanboard.model;
 
 import com.baumeredv.kanbanboard.model.dto.PostItDTO;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
+import com.baumeredv.kanbanboard.model.util.SessionFactorySingleton;
 import java.util.ArrayList;
 import java.util.List;
 import javax.persistence.TypedQuery;
@@ -12,6 +13,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component("KanbanBoardDatabaseGateway")
@@ -19,8 +21,9 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
 
   private final SessionFactory sessionFactory;
 
-  public KanbanBoardDatabaseGateway() {
-    sessionFactory = com.baumeredv.kanbanboard.model.util.SessionFactory.sessionFactory();
+  @Autowired
+  public KanbanBoardDatabaseGateway(SessionFactorySingleton sessionFactorySingleton) {
+    sessionFactory = sessionFactorySingleton.sessionFactory();
   }
 
   @Override
@@ -70,12 +73,14 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
     Predicate[] predicates = new Predicate[2];
     predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
     predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
-    CriteriaQuery<PostItDTO> deletionCriteriaQuery = criteriaQuery.select(rootEntry).where(predicates);
+    CriteriaQuery<PostItDTO> deletionCriteriaQuery = criteriaQuery.select(rootEntry)
+        .where(predicates);
     TypedQuery<PostItDTO> deletionQuery = session.createQuery(deletionCriteriaQuery);
     List<PostItDTO> results = deletionQuery.getResultList();
-    assert(results.size()<=1);
-    if(results.isEmpty()){
-      throw new ThereIsNoSuchPostItException("There was an attempt to delete a PostIt that doesn't exist");
+    assert (results.size() <= 1);
+    if (results.isEmpty()) {
+      throw new ThereIsNoSuchPostItException(
+          "There was an attempt to delete a PostIt that doesn't exist");
     }
     PostItDTO postItToBeDeletedDTO = results.get(0);
     session.beginTransaction();
@@ -89,7 +94,8 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
       throws ThereIsNoSuchPostItException {
     Session session = sessionFactory.openSession();
     CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-    CriteriaUpdate<PostItDTO> criteriaUpdate = criteriaBuilder.createCriteriaUpdate(PostItDTO.class);
+    CriteriaUpdate<PostItDTO> criteriaUpdate = criteriaBuilder
+        .createCriteriaUpdate(PostItDTO.class);
     Root<PostItDTO> rootEntry = criteriaUpdate.from(PostItDTO.class);
     criteriaUpdate.set(rootEntry.get("stage"), newStage.name());
     Predicate[] predicates = new Predicate[2];
@@ -100,11 +106,13 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
     session.beginTransaction();
     int updatedEntitiesCount = session.createQuery(criteriaUpdate).executeUpdate();
     session.getTransaction().commit();
-    assert(updatedEntitiesCount<=1);
-    if(updatedEntitiesCount == 0){
-      throw new ThereIsNoSuchPostItException("There was an attempt to change the state of a PostIt that doesn't exist");
+    assert (updatedEntitiesCount <= 1);
+    if (updatedEntitiesCount == 0) {
+      throw new ThereIsNoSuchPostItException(
+          "There was an attempt to change the state of a PostIt that doesn't exist");
     }
-    return new PostIt(postIt.text(), newStage); //REVIEW: is it fine to create this here rather than pull it from the database?
+    return new PostIt(postIt.text(),
+        newStage); //REVIEW: is it fine to create this here rather than pull it from the database?
   }
 
   @Override
@@ -112,7 +120,8 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
       throws ThereIsNoSuchPostItException {
     Session session = sessionFactory.openSession();
     CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
-    CriteriaUpdate<PostItDTO> criteriaUpdate = criteriaBuilder.createCriteriaUpdate(PostItDTO.class);
+    CriteriaUpdate<PostItDTO> criteriaUpdate = criteriaBuilder
+        .createCriteriaUpdate(PostItDTO.class);
     Root<PostItDTO> rootEntry = criteriaUpdate.from(PostItDTO.class);
     criteriaUpdate.set(rootEntry.get("text"), newText);
     Predicate[] predicates = new Predicate[2];
@@ -122,10 +131,12 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
     session.beginTransaction();
     int updatedEntitiesCount = session.createQuery(criteriaUpdate).executeUpdate();
     session.getTransaction().commit();
-    assert(updatedEntitiesCount<=1);
-    if(updatedEntitiesCount == 0){
-      throw new ThereIsNoSuchPostItException("There was an attempt to change the text of a PostIt that doesn't exist");
+    assert (updatedEntitiesCount <= 1);
+    if (updatedEntitiesCount == 0) {
+      throw new ThereIsNoSuchPostItException(
+          "There was an attempt to change the text of a PostIt that doesn't exist");
     }
-    return new PostIt(newText, postIt.stage()); //REVIEW: is it fine to create this here rather than pull it from the database?
+    return new PostIt(newText, postIt
+        .stage()); //REVIEW: is it fine to create this here rather than pull it from the database?
   }
 }

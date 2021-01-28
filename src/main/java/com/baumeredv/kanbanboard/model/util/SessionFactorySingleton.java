@@ -5,29 +5,29 @@ import com.baumeredv.kanbanboard.model.dto.PostItDTO;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
+import org.springframework.stereotype.Component;
 
-public class SessionFactory {
+@Component("SessionFactorySingleton")
+public class SessionFactorySingleton {
 
-  private static org.hibernate.SessionFactory sessionFactory;
-  private static ServiceRegistry serviceRegistry;
+  private org.hibernate.SessionFactory sessionFactory;
+  private ServiceRegistry serviceRegistry;
 
-  private SessionFactory(){
+  private SessionFactorySingleton() {
   }
 
-  public static org.hibernate.SessionFactory sessionFactory() {
-    //if (sessionFactory == null){
+  public org.hibernate.SessionFactory sessionFactory() {
+    if (sessionFactory == null) {
       Configuration configuration = new Configuration();
       configuration.configure("/hibernate.cfg.xml");
       configuration.addAnnotatedClass(PostItDTO.class);
-      //assert(serviceRegistry == null);
+      assert (serviceRegistry == null);
       serviceRegistry = new StandardServiceRegistryBuilder()
           .applySettings(configuration.getProperties())
           .build();
       sessionFactory = configuration.buildSessionFactory(serviceRegistry);
-    //}
+    }
     return sessionFactory;
   }
-
-  //TODO: make this a proper Spring item so that it gets recreated from the testing framework
 
 }
