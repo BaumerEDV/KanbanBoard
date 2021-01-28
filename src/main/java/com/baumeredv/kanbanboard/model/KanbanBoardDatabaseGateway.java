@@ -29,7 +29,6 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
   @Override
   public PostIt addPostIt(String text, PostItStage stage) {
     PostItDTO postItDTO = new PostItDTO(text, stage.name());
-
     Session session = sessionFactory.openSession();
     session.beginTransaction();
     try {
@@ -52,7 +51,6 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
     CriteriaQuery<PostItDTO> criteriaQuery = criteriaBuilder.createQuery(PostItDTO.class);
     Root<PostItDTO> rootEntry = criteriaQuery.from(PostItDTO.class);
     CriteriaQuery<PostItDTO> all = criteriaQuery.select(rootEntry);
-
     TypedQuery<PostItDTO> allQuery = session.createQuery(all);
     List<PostIt> postIts = new ArrayList<>();
     for (PostItDTO postItDTO : allQuery.getResultList()) {
@@ -70,11 +68,8 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
     CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
     CriteriaQuery<PostItDTO> criteriaQuery = criteriaBuilder.createQuery(PostItDTO.class);
     Root<PostItDTO> rootEntry = criteriaQuery.from(PostItDTO.class);
-    Predicate[] predicates = new Predicate[2];
-    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
-    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
     CriteriaQuery<PostItDTO> deletionCriteriaQuery = criteriaQuery.select(rootEntry)
-        .where(predicates);
+        .where(getPredicatesToQueryForPostIt(postIt, criteriaBuilder, rootEntry));
     TypedQuery<PostItDTO> deletionQuery = session.createQuery(deletionCriteriaQuery);
     List<PostItDTO> results = deletionQuery.getResultList();
     assert (results.size() <= 1);
@@ -98,11 +93,7 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
         .createCriteriaUpdate(PostItDTO.class);
     Root<PostItDTO> rootEntry = criteriaUpdate.from(PostItDTO.class);
     criteriaUpdate.set(rootEntry.get("stage"), newStage.name());
-    Predicate[] predicates = new Predicate[2];
-    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
-    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
-    criteriaUpdate.where(predicates);
-
+    criteriaUpdate.where(getPredicatesToQueryForPostIt(postIt, criteriaBuilder, rootEntry));
     session.beginTransaction();
     int updatedEntitiesCount = session.createQuery(criteriaUpdate).executeUpdate();
     session.getTransaction().commit();
@@ -124,9 +115,7 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
         .createCriteriaUpdate(PostItDTO.class);
     Root<PostItDTO> rootEntry = criteriaUpdate.from(PostItDTO.class);
     criteriaUpdate.set(rootEntry.get("text"), newText);
-    Predicate[] predicates = new Predicate[2];
-    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
-    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
+    Predicate[] predicates = getPredicatesToQueryForPostIt(postIt, criteriaBuilder, rootEntry);
     criteriaUpdate.where(predicates);
     session.beginTransaction();
     int updatedEntitiesCount = session.createQuery(criteriaUpdate).executeUpdate();
@@ -136,7 +125,16 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
       throw new ThereIsNoSuchPostItException(
           "There was an attempt to change the text of a PostIt that doesn't exist");
     }
-    return new PostIt(newText, postIt
-        .stage()); //REVIEW: is it fine to create this here rather than pull it from the database?
+    return new PostIt(newText, postIt.stage());
+    //REVIEW: is it fine to create this here rather than pull it from the database?
+  }
+
+  private Predicate[] getPredicatesToQueryForPostIt(PostIt postIt, CriteriaBuilder criteriaBuilder,
+      Root<PostItDTO> rootEntry) {
+    Predicate[] predicates = new Predicate[2];
+    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
+    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
+    return predicates;
+    //REVIEW: does this belong here or should it be a static method in the postitdto
   }
 }
