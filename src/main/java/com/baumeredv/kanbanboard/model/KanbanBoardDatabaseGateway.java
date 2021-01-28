@@ -1,16 +1,14 @@
 package com.baumeredv.kanbanboard.model;
 
 import com.baumeredv.kanbanboard.model.dto.PostItDTO;
-import com.baumeredv.kanbanboard.model.dto.PostItId;
 import com.baumeredv.kanbanboard.model.exceptions.ThereIsNoSuchPostItException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceException;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
+import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -27,8 +25,7 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
 
   @Override
   public PostIt addPostIt(String text, PostItStage stage) {
-    PostItId postItId = new PostItId(text, stage.name());
-    PostItDTO postItDTO = new PostItDTO(postItId);
+    PostItDTO postItDTO = new PostItDTO(text, stage.name());
 
     Session session = sessionFactory.openSession();
     session.beginTransaction();
@@ -41,7 +38,6 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
       session.getTransaction().rollback();
       session.close();
       throw e;
-      //throw new PersistenceException("An unknown error occurred when connecting to the database");
     }
     //REVIEW: I believe error handling belongs in a different class, probably the Gateway?
   }
@@ -57,8 +53,8 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
     TypedQuery<PostItDTO> allQuery = session.createQuery(all);
     List<PostIt> postIts = new ArrayList<>();
     for (PostItDTO postItDTO : allQuery.getResultList()) {
-      PostIt postIt = new PostIt(postItDTO.getPostItId().getText(),
-          PostItStage.valueOf(postItDTO.getPostItId().getStage()));
+      PostIt postIt = new PostIt(postItDTO.getText(),
+          PostItStage.valueOf(postItDTO.getStage()));
       postIts.add(postIt);
     }
     session.close();
@@ -68,13 +64,22 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
   @Override
   public void deletePostIt(PostIt postIt) {
     Session session = sessionFactory.openSession();
-    session.beginTransaction();
-    PostItDTO postItDTO = session
-        .get(PostItDTO.class, new PostItId(postIt.text(), postIt.stage().name()));
-    if (postItDTO == null) {
-      throw new ThereIsNoSuchPostItException("");
+    CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+    CriteriaQuery<PostItDTO> criteriaQuery = criteriaBuilder.createQuery(PostItDTO.class);
+    Root<PostItDTO> rootEntry = criteriaQuery.from(PostItDTO.class);
+    Predicate[] predicates = new Predicate[2];
+    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
+    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
+    CriteriaQuery<PostItDTO> deletionCriteriaQuery = criteriaQuery.select(rootEntry).where(predicates);
+    TypedQuery<PostItDTO> deletionQuery = session.createQuery(deletionCriteriaQuery);
+    List<PostItDTO> results = deletionQuery.getResultList();
+    assert(results.size()<=1);
+    if(results.isEmpty()){
+      throw new ThereIsNoSuchPostItException("There was an attempt to delete a PostIt that doesn't exist");
     }
-    session.delete(postItDTO);
+    PostItDTO postItToBeDeletedDTO = results.get(0);
+    session.beginTransaction();
+    session.delete(postItToBeDeletedDTO);
     session.getTransaction().commit();
     session.close();
   }
@@ -83,48 +88,44 @@ public class KanbanBoardDatabaseGateway implements KanbanBoardGateway {
   public PostIt changePostItStage(PostIt postIt, PostItStage newStage)
       throws ThereIsNoSuchPostItException {
     Session session = sessionFactory.openSession();
+    CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+    CriteriaUpdate<PostItDTO> criteriaUpdate = criteriaBuilder.createCriteriaUpdate(PostItDTO.class);
+    Root<PostItDTO> rootEntry = criteriaUpdate.from(PostItDTO.class);
+    criteriaUpdate.set(rootEntry.get("stage"), newStage.name());
+    Predicate[] predicates = new Predicate[2];
+    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
+    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
+    criteriaUpdate.where(predicates);
+
     session.beginTransaction();
-    System.out.println("---getting DTO---");
-    PostItDTO postItDTO = session.get(PostItDTO.class,
-        new PostItId(postIt.text(), postIt.stage().name()));
-    if (postItDTO == null){
-      throw new ThereIsNoSuchPostItException("");
+    int updatedEntitiesCount = session.createQuery(criteriaUpdate).executeUpdate();
+    session.getTransaction().commit();
+    assert(updatedEntitiesCount<=1);
+    if(updatedEntitiesCount == 0){
+      throw new ThereIsNoSuchPostItException("There was an attempt to change the state of a PostIt that doesn't exist");
     }
-    /*System.out.println("---evicting DTO---");
-    session.evict(postItDTO);
-    System.out.println("---setting new post it id for DTO---");
-    postItDTO.setPostItId(new PostItId(postIt.text(), newStage.name()));
-    System.out.println("---merging DTO---");
-    postItDTO = (PostItDTO) session.merge(postItDTO);
-    System.out.println("---committing transaction---");
-    session.getTransaction().commit();
-    System.out.println("---returning---");*/
-    session.delete(postItDTO);
-    session.save(new PostItDTO(new PostItId(postIt.text(), newStage.name())));
-    postItDTO = session.get(PostItDTO.class, new PostItId(postIt.text(), newStage.name()));
-    session.getTransaction().commit();
-    session.close();
-    return new PostIt(postItDTO.getPostItId().getText(), PostItStage.valueOf(postItDTO.getPostItId().getStage()));
-    //TODO: use an actual primary key and refactor this to be an update instead of delete plus insert
+    return new PostIt(postIt.text(), newStage); //REVIEW: is it fine to create this here rather than pull it from the database?
   }
 
   @Override
   public PostIt changePostItText(PostIt postIt, String newText)
       throws ThereIsNoSuchPostItException {
     Session session = sessionFactory.openSession();
+    CriteriaBuilder criteriaBuilder = session.getCriteriaBuilder();
+    CriteriaUpdate<PostItDTO> criteriaUpdate = criteriaBuilder.createCriteriaUpdate(PostItDTO.class);
+    Root<PostItDTO> rootEntry = criteriaUpdate.from(PostItDTO.class);
+    criteriaUpdate.set(rootEntry.get("text"), newText);
+    Predicate[] predicates = new Predicate[2];
+    predicates[0] = criteriaBuilder.equal(rootEntry.get("text"), postIt.text());
+    predicates[1] = criteriaBuilder.equal(rootEntry.get("stage"), postIt.stage().name());
+    criteriaUpdate.where(predicates);
     session.beginTransaction();
-    System.out.println("---getting DTO---");
-    PostItDTO postItDTO = session.get(PostItDTO.class,
-        new PostItId(postIt.text(), postIt.stage().name()));
-    if (postItDTO == null){
-      throw new ThereIsNoSuchPostItException("");
-    }
-    session.delete(postItDTO);
-    session.save(new PostItDTO(new PostItId(newText, postIt.stage().name())));
-    postItDTO = session.get(PostItDTO.class, new PostItId(newText, postIt.stage().name()));
+    int updatedEntitiesCount = session.createQuery(criteriaUpdate).executeUpdate();
     session.getTransaction().commit();
-    session.close();
-    return new PostIt(postItDTO.getPostItId().getText(), PostItStage.valueOf(postItDTO.getPostItId().getStage()));
-    //TODO: clean this up just like you gotta clean up the stage changing method
+    assert(updatedEntitiesCount<=1);
+    if(updatedEntitiesCount == 0){
+      throw new ThereIsNoSuchPostItException("There was an attempt to change the text of a PostIt that doesn't exist");
+    }
+    return new PostIt(newText, postIt.stage()); //REVIEW: is it fine to create this here rather than pull it from the database?
   }
 }
